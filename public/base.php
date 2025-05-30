@@ -3,6 +3,7 @@
 use App\Controller\HomeController;
 use App\Core\BaseController;
 use App\Core\ViteAssets;
+use App\Core\PostgresSessionHandler;
 
 ignore_user_abort(true);
 
@@ -14,6 +15,8 @@ require_once BASE_PATH . '/vendor/autoload.php';
 
 require_once "config.php";
 
+$handler = new PostgresSessionHandler();
+session_set_save_handler($handler, true);
 session_start();
 
 ViteAssets::init(DEV);
