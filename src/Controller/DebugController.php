@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Core\BaseController;
 use App\Core\Database;
 use ByJG\DbMigration\Exception\DatabaseDoesNotRegistered;
 use ByJG\DbMigration\Exception\DatabaseIsIncompleteException;
@@ -10,7 +11,7 @@ use ByJG\DbMigration\Exception\InvalidMigrationFile;
 use ByJG\DbMigration\Exception\OldVersionSchemaException;
 use Exception;
 
-class DebugController
+class DebugController extends BaseController
 {
 
     public function index(): void

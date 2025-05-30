@@ -5,13 +5,17 @@ namespace App\Controller;
 use App\Core\BaseController;
 use App\Core\Database;
 use Exception;
-use PDO;
-use PDOException;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
 class AuthController extends BaseController
 {
     /**
      * Show login form
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws LoaderError
      */
     public function login(): void
     {
@@ -20,6 +24,9 @@ class AuthController extends BaseController
 
     /**
      * Show registration form
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws LoaderError
      */
     public function register(): void
     {
@@ -28,6 +35,10 @@ class AuthController extends BaseController
 
     /**
      * Handle form submission for registration
+     * @throws SyntaxError
+     * @throws RuntimeError
+     * @throws LoaderError
+     * @throws Exception
      */
     public function handleRegister(): void
     {
@@ -50,32 +61,30 @@ class AuthController extends BaseController
         }
 
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        try {
-            $db = Database::getConnection();
-            pg_prepare($db, "user_exists", 'SELECT id FROM users WHERE username = $1 OR email = $2');
-            $result = pg_execute($db, "user_exists", [$username, $email]);
-            if (pg_num_rows($result) > 0) {
-                $this->render('register', ['error' => 'Username or email already in use.']);
-                return;
-            }
+        $db = Database::getConnection();
+        pg_prepare($db, "user_exists", 'SELECT id FROM users WHERE username = $1 OR email = $2');
+        $result = pg_execute($db, "user_exists", [$username, $email]);
+        if (pg_num_rows($result) > 0) {
+            $this->render('register', ['error' => 'Username or email already in use.']);
+            return;
+        }
 
-            pg_prepare($db, "users_create", 'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id');
-            $result = pg_execute($db, "users_create", [$username, $email, $hash]);
-            if (!!$result) {
-                $result = pg_fetch_assoc($result);
-                $_SESSION['user_id'] = $result["id"];
-                $_SESSION['username'] = $username;
-                header('Location: /');
-                exit;
-            }
-        } catch (Exception $e) {
-            $msg = str_contains($e->getMessage(), 'UNIQUE') ? 'Username or email already in use.' : 'Registration failed.';
-            $this->render('register', ['error' => $msg]);
+        pg_prepare($db, "users_create", 'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id');
+        $result = pg_execute($db, "users_create", [$username, $email, $hash]);
+        if (!!$result) {
+            $result = pg_fetch_assoc($result);
+            $_SESSION['user_id'] = $result["id"];
+            $_SESSION['username'] = $username;
+            header('Location: /');
+            exit;
         }
     }
 
     /**
      * Handle login submission
+     * @throws SyntaxError
+     * @throws RuntimeError
+     * @throws LoaderError
      */
     public function handleLogin(): void
     {
@@ -105,6 +114,5 @@ class AuthController extends BaseController
     {
         session_destroy();
         header('Location: /login');
-        exit;
     }
 }

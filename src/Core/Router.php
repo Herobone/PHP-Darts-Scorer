@@ -3,6 +3,7 @@
 namespace App\Core;
 
 use Exception;
+use App\Controller\ErrorController; // Add this use statement
 
 class Router {
     protected array $routes = [];
@@ -47,13 +48,19 @@ class Router {
                     // Rufe die Controller-Methode auf
                     $controllerInstance->$actionName();
                 } else {
-                    throw new Exception("Methode {$actionName} im Controller {$controllerName} nicht gefunden.");
+                    // Methode nicht gefunden
+                    $errorController = new ErrorController();
+                    $errorController->showError(500, "Action '{$actionName}' not found in controller '{$controllerName}'.");
                 }
             } else {
-                throw new Exception("Controller-Klasse {$controllerName} nicht gefunden.");
+                // Controller-Klasse nicht gefunden
+                $errorController = new ErrorController();
+                $errorController->showError(500, "Controller class '{$controllerName}' not found.");
             }
         } else {
-            throw new Exception("Keine Route für {$requestMethod} {$requestUri} gefunden.", 404);
+            // Keine Route gefunden
+            $errorController = new ErrorController();
+            $errorController->showError(404, "Page not found for URI '/{$requestUri}' with method '{$requestMethod}'.");
         }
     }
 }

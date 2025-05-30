@@ -6,15 +6,10 @@ use App\Core\BaseController;
 use App\Core\ViteAssets;
 use App\Core\PostgresSessionHandler;
 
-ignore_user_abort(true);
-
-// Definiere eine Konstante für den Basispfad des Projekts
-define('BASE_PATH', dirname(__DIR__)); // Zeigt auf das 'dart-scorer' Verzeichnis
-
 // Lade den Composer Autoloader
 require_once BASE_PATH . '/vendor/autoload.php';
 
-require_once "config.php";
+require_once BASE_PATH . "/config.php";
 
 $handler = new PostgresSessionHandler();
 session_set_save_handler($handler, true);
@@ -40,6 +35,11 @@ $router->addRoute('POST', '/register', App\Controller\AuthController::class, 'ha
 $router->addRoute('GET', '/logout', App\Controller\AuthController::class, 'logout');
 $router->addRoute("GET", "/score", HomeController::class, 'score');
 
+// Game routes
+$router->addRoute('GET', '/game/create', App\Controller\GameController::class, 'create');
+$router->addRoute('POST', '/game/create', App\Controller\GameController::class, 'store');
+$router->addRoute('GET', '/game/score', App\Controller\ScoreController::class, 'score');
+
 if (DEV) {
     $router->addRoute("GET", "/debug/migrate", DebugController::class, 'migrate');
     $router->addRoute('GET', '/debug/phpinfo', DebugController::class, 'phpInfo');
@@ -60,9 +60,16 @@ $handler = static function () use ($router) {
     try {
         $router->dispatch($requestMethod, $uri);
     } catch (Exception $e) {
+        if ($e->getCode() === 0) {
+            // Setze einen generischen Fehlercode, wenn keiner angegeben ist
+            $e = new Exception($e->getMessage(), 500);
+        }
         http_response_code($e->getCode());
-        echo "<h1>Seite nicht gefunden (" . $e->getCode() . ")</h1>";
+
+        // Zeige eine generische Fehlerseite an
+        echo "<h1>Error " . $e->getCode() . "</h1>";
         echo "<p>" . $e->getMessage() . "</p>";
+
         // Optional: Logge den Fehler
         error_log($e->getMessage());
     }

@@ -4,9 +4,13 @@ use App\Core\Database;
 use App\Core\ViteAssets;
 
 const DEV = false;
+ignore_user_abort(true);
+
+// Definiere eine Konstante für den Basispfad des Projekts
+define('BASE_PATH', dirname(__DIR__));
 
 /** @var callable $handler */
-include_once 'base.php';
+include_once BASE_PATH . '/src/base.php';
 
 ViteAssets::init(DEV);
 
