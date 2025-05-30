@@ -13,21 +13,8 @@ class HomeController extends BaseController {
         $this->render('index');
     }
 
-    public function php_info(): void {
-        // Zeigt die PHP-Info-Seite an
-        phpinfo();
-        xdebug_info();
-    }
-
     public function score() :void {
         $this->render('scoring');
-    }
-
-    public function koks() : void {
-        $this->render('home', [
-            'pageTitle' => "Koks?",
-            'message' => "Naja ist meistens nicht so geil. Nicht zu empfehlen"
-        ]);
     }
 
     /**

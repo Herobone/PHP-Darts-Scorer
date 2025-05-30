@@ -1,5 +1,6 @@
 <?php
 
+use App\Controller\DebugController;
 use App\Controller\HomeController;
 use App\Core\BaseController;
 use App\Core\ViteAssets;
@@ -32,13 +33,17 @@ $router = new App\Core\Router();
 $router->addRoute('GET', '/', App\Controller\HomeController::class, 'index');
 $router->addRoute('GET', '/about', App\Controller\HomeController::class, 'about');
 $router->addRoute('GET', '/koks', App\Controller\HomeController::class, 'koks');
-$router->addRoute('GET', '/phpinfo', App\Controller\HomeController::class, 'php_info');
 $router->addRoute('GET', '/login', App\Controller\AuthController::class, 'login');
 $router->addRoute('POST', '/login', App\Controller\AuthController::class, 'handleLogin');
 $router->addRoute('GET', '/register', App\Controller\AuthController::class, 'register');
 $router->addRoute('POST', '/register', App\Controller\AuthController::class, 'handleRegister');
 $router->addRoute('GET', '/logout', App\Controller\AuthController::class, 'logout');
 $router->addRoute("GET", "/score", HomeController::class, 'score');
+
+if (DEV) {
+    $router->addRoute("GET", "/debug/migrate", DebugController::class, 'migrate');
+    $router->addRoute('GET', '/debug/phpinfo', DebugController::class, 'phpInfo');
+}
 
 $handler = static function () use ($router) {
     // Hole die aktuelle angeforderte URI und Methode
