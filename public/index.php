@@ -1,8 +1,11 @@
 <?php
 
+use App\Core\Database;
+
 $devEnv = getenv("DEV");
 define('DEV', $devEnv != "");
 
+/** @var callable $handler */
 include_once 'base.php';
 
 $migrate = getenv("MIGRATE");

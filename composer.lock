@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f370c362834e3d2c6fb88737b6ba4753",
+    "content-hash": "ce3b5cc80be748e9b6e08ad76e3f9ce0",
     "packages": [
         {
             "name": "byjg/anydataset",
@@ -840,7 +840,8 @@
     "platform": {
         "php": ">=8.4",
         "ext-pdo": "*",
-        "ext-pgsql": "*"
+        "ext-pgsql": "*",
+        "ext-frankenphp": "*"
     },
     "platform-dev": {},
     "plugin-api-version": "2.6.0"

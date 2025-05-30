@@ -5,6 +5,7 @@ use App\Core\ViteAssets;
 
 const DEV = false;
 
+/** @var callable $handler */
 include_once 'base.php';
 
 ViteAssets::init(DEV);
@@ -27,3 +28,5 @@ for ($nbRequests = 0; !$maxRequests || $nbRequests < $maxRequests; ++$nbRequests
 
     if (!$keepRunning) break;
 }
+
+Database::closeConnection();

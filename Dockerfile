@@ -9,7 +9,7 @@ RUN bun run build
 FROM composer AS phpbuilder
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --no-dev
+RUN composer install --no-dev --ignore-platform-req=ext-frankenphp
 
 FROM dunglas/frankenphp
 RUN install-php-extensions \
