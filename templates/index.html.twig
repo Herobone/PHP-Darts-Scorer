@@ -1,0 +1,20 @@
+{# templates/index.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Home - Darts Scorer{% endblock %}
+
+{% block body %}
+    <section class="bg-white dark:bg-gray-900 py-20">
+        <div class="container mx-auto px-4 flex flex-col items-center">
+            <h1 class="text-5xl font-extrabold text-gray-900 dark:text-white mb-6">Darts Scorer</h1>
+            <p class="text-lg text-gray-600 dark:text-gray-300 mb-8 text-center max-w-2xl">
+                Keep track of your games, scores, and statistics with ease.
+            </p>
+            <div class="flex space-x-4">
+                <a href="#" class="px-6 py-3 text-white bg-blue-600 hover:bg-blue-700 rounded-lg">Start New Game</a>
+                <a href="#" class="px-6 py-3 text-blue-600 border border-blue-600 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg">View History</a>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

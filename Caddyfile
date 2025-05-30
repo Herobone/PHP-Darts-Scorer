@@ -1,0 +1,40 @@
+{
+	frankenphp {
+	    php_ini xdebug.client_host 192.168.1.172
+        php_ini xdebug.start_with_request yes
+        php_ini zend_extension xdebug.so
+        php_ini xdebug.mode develop,coverage,debug,profile
+        php_ini xdebug.idekey docker
+        php_ini xdebug.log /dev/stdout
+        php_ini xdebug.log_level 0
+        php_ini xdebug.client_port 9003
+
+
+	    php_ini session.use_strict_mode	1
+	}
+}
+
+localhost {
+	log
+
+	encode zstd br gzip
+
+	root build/
+
+	request_header X-Sendfile-Type x-accel-redirect
+	request_header X-Accel-Mapping ../private-files=/private-files
+	intercept {
+		@sendfile header X-Accel-Redirect *
+		handle_response @sendfile {
+			root private-files/
+			rewrite * {resp.header.X-Accel-Redirect}
+			method * GET
+			header -X-Accel-Redirect
+			file_server
+		}
+	}
+
+	php_server {
+		try_files {path} index.php
+	}
+}
