@@ -4,73 +4,38 @@
 {% block title %}Home - Darts Scorer{% endblock %}
 
 {% block body %}
+<script>
+  window.gameState = {{ gameState|json_encode|raw }};
+</script>
+
 <div class="max-w-lg mx-auto p-6 bg-white rounded-lg shadow-md">
     <div class="mb-6">
         <div class="text-center">
-            <h3 class="text-lg font-semibold text-gray-700">Enter Score</h3>
-            <div class="mt-2 p-4 bg-gray-100 rounded-lg">
-                <p class="text-3xl font-bold text-gray-800" id="current-score">0</p>
+            <div id="players-list" class="flex space-x-4 mb-4 justify-between">
+                {% for p in gameState.players %}
+                    <div class="player p-2 bg-gray-100 rounded" data-player-index="{{ loop.index0 }}">
+                        <div class="font-bold text-gray-800">{{ p.name }}</div>
+                        <div>Remaining: <span class="remaining" data-initial="{{ p.remaining }}">{{ p.remaining }}</span></div>
+                        <div class="darts flex"></div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     </div>
 
     <div class="grid grid-cols-3 gap-2 mb-4">
         {% for i in range(1, 20) %}
-            <button
-                    type="button"
-                    class="py-3 px-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
-                    data-value="{{ i }}"
-            >
-                {{ i }}
-            </button>
+            <button type="button" class="py-3 px-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors" data-value="{{ i }}">{{ i }}</button>
         {% endfor %}
-        <button
-                type="button"
-                class="py-3 px-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
-                data-value="25"
-        >
-            25
-        </button>
-        <button
-                type="button"
-                class="py-2 px-3 bg-red-400 hover:bg-red-600 text-white font-medium rounded-lg transition-colors col-span-2"
-                data-value="0"
-        >
-            0
-        </button>
+        <button type="button" class="py-3 px-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors" data-value="25">25</button>
+        <button type="button" class="py-2 px-3 bg-red-400 hover:bg-red-600 text-white font-medium rounded-lg transition-colors col-span-2" data-value="0">0</button>
     </div>
 
-    <div class="multiplier-buttons grid grid-cols-3 gap-2">
-        <button
-                type="button"
-                class="py-2 px-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors"
-                data-multiplier="2"
-        >
-            Double (x2)
-        </button>
-        <button
-                type="button"
-                class="py-2 px-3 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-lg transition-colors"
-                data-multiplier="3"
-        >
-            Triple (x3)
-        </button>
-        <button
-                type="button"
-                class="py-2 px-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors"
-        >
-            Undo
-        </button>
-    </div>
-
-    <div class="submit-section mt-6">
-        <button
-                type="button"
-                id="submit-score"
-                class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors"
-        >
-            Submit Score
-        </button>
+    <div class="multiplier-buttons grid grid-cols-4 gap-2">
+        <button type="button" class="py-2 px-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors" data-multiplier="2">Double (x2)</button>
+        <button type="button" class="py-2 px-3 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-lg transition-colors" data-multiplier="3">Triple (x3)</button>
+        <button type="button" id="undo-btn" class="py-2 px-3 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors">Undo</button>
     </div>
 </div>
 {% endblock %}
+

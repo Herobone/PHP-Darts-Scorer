@@ -39,6 +39,8 @@ $router->addRoute("GET", "/score", HomeController::class, 'score');
 $router->addRoute('GET', '/game/create', App\Controller\GameController::class, 'create');
 $router->addRoute('POST', '/game/create', App\Controller\GameController::class, 'store');
 $router->addRoute('GET', '/game/score', App\Controller\ScoreController::class, 'score');
+$router->addRoute('POST', '/game/score', App\Controller\ScoreController::class, 'submit');
+$router->addRoute('POST', '/game/score/undo', App\Controller\ScoreController::class, 'undo');
 
 if (DEV) {
     $router->addRoute("GET", "/debug/migrate", DebugController::class, 'migrate');
