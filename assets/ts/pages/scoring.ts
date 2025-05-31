@@ -5,6 +5,8 @@ interface Player {
     name: string;
     remaining: number;
     lastDarts: number[];
+    finishPosition?: number;
+    finishedAt?: string;
 }
 
 interface GameData {
@@ -37,6 +39,8 @@ export function ScoringPage(): void {
     // Initialize game state from the global variable
     if (typeof (window as any).gameState !== 'undefined') {
         currentGameState = (window as any).gameState;
+        // Initialize previous state to current state to avoid false positives on first update
+        window.previousGameState = JSON.parse(JSON.stringify(currentGameState));
         updateUI();
     }
 
@@ -182,18 +186,23 @@ function updateUI(): void {
     currentGameState.players.forEach((player, index) => {
         const playerElement = playersListElement.querySelector(`[data-player-index="${index}"]`) as HTMLElement;
         if (playerElement) {
+            // Remove all previous styling classes
+            playerElement.classList.remove('!bg-blue-200', 'border-2', 'border-blue-500', '!bg-green-100', 'border-green-500');
+            
             // Update remaining score
             const remainingElement = playerElement.querySelector('.remaining');
             if (remainingElement) {
-                remainingElement.textContent = player.remaining.toString();
+                // Clear previous classes
+                remainingElement.classList.remove('text-green-600', 'text-orange-600', 'font-bold', 'font-semibold');
                 
-                // Color coding for remaining score
                 if (player.remaining === 0) {
+                    remainingElement.textContent = `Finished ${getPositionText(player.finishPosition || 0)}`;
                     remainingElement.classList.add('text-green-600', 'font-bold');
-                } else if (player.remaining <= 40) {
-                    remainingElement.classList.add('text-orange-600', 'font-semibold');
                 } else {
-                    remainingElement.classList.remove('text-green-600', 'text-orange-600', 'font-bold', 'font-semibold');
+                    remainingElement.textContent = player.remaining.toString();
+                    if (player.remaining <= 40) {
+                        remainingElement.classList.add('text-orange-600', 'font-semibold');
+                    }
                 }
             }
 
@@ -212,8 +221,21 @@ function updateUI(): void {
                 });
             }
 
-            // Highlight current player
-            if (index === currentGameState!.currentPlayer) {
+            // Style finished players
+            if (player.remaining === 0) {
+                playerElement.classList.add('!bg-green-100', 'border-2', 'border-green-500');
+                // Remove any dart indicators for finished players
+                const existingIndicator = playerElement.querySelector('.dart-indicator');
+                if (existingIndicator) {
+                    existingIndicator.remove();
+                }
+                const existingHint = playerElement.querySelector('.rules-hint');
+                if (existingHint) {
+                    existingHint.remove();
+                }
+            }
+            // Highlight current player (only if not finished)
+            else if (index === currentGameState!.currentPlayer) {
                 playerElement.classList.add('!bg-blue-200', 'border-2', 'border-blue-500');
                 
                 // Show current dart indicator
@@ -242,18 +264,30 @@ function updateUI(): void {
                     playerElement.appendChild(rulesHint);
                 }
             } else {
-                playerElement.classList.remove('!bg-blue-200', 'border-2', 'border-blue-500');
-                const dartIndicator = playerElement.querySelector('.dart-indicator');
-                if (dartIndicator) {
-                    dartIndicator.remove();
-                }
-                const rulesHint = playerElement.querySelector('.rules-hint');
-                if (rulesHint) {
-                    rulesHint.remove();
+                // For non-current, non-finished players: remove current player styling and indicators
+                if (player.remaining > 0) {
+                    playerElement.classList.remove('!bg-blue-200', 'border-2', 'border-blue-500');
+                    const dartIndicator = playerElement.querySelector('.dart-indicator');
+                    if (dartIndicator) {
+                        dartIndicator.remove();
+                    }
+                    const rulesHint = playerElement.querySelector('.rules-hint');
+                    if (rulesHint) {
+                        rulesHint.remove();
+                    }
                 }
             }
         }
     });
+}
+
+function getPositionText(position: number): string {
+    switch (position) {
+        case 1: return '1st';
+        case 2: return '2nd';
+        case 3: return '3rd';
+        default: return `${position}th`;
+    }
 }
 
 async function submitScore(): Promise<void> {
@@ -283,19 +317,59 @@ async function submitScore(): Promise<void> {
             updateScoreDisplay();
             updateButtonStates();
 
-            // Check for game over
-            if (currentGameState && currentGameState.players.some(player => player.remaining === 0)) {
-                const winner = currentGameState.players.find(player => player.remaining === 0);
-                if (winner) {
-                    alert(`🎉 ${winner.name} wins!`);
-                    // Redirect to home or game creation
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 2000);
+            // Check for newly finished players by comparing with previous state
+            if (currentGameState) {
+                const previousPlayers = window.previousGameState?.players || [];
+                
+                currentGameState.players.forEach(currentPlayer => {
+                    const previousPlayer = previousPlayers.find((p: any) => p.id === currentPlayer.id);
+                    
+                    // Check if this player just finished (was not finished before, but is now)
+                    if (currentPlayer.remaining === 0 && currentPlayer.finishPosition && 
+                        (!previousPlayer || previousPlayer.remaining > 0)) {
+                        const position = getPositionText(currentPlayer.finishPosition);
+                        alert(`🎉 ${currentPlayer.name} finishes ${position}!`);
+                    }
+                });
+                
+                // Store current state for next comparison
+                window.previousGameState = JSON.parse(JSON.stringify(currentGameState));
+                
+                // Check if game is completely over
+                const playersStillPlaying = currentGameState.players.filter(player => player.remaining > 0);
+                if (playersStillPlaying.length <= 1 || (result as any).gameFinished) {
+                    if (playersStillPlaying.length === 1) {
+                        const lastPlayer = playersStillPlaying[0];
+                        if (lastPlayer) {
+                            setTimeout(() => {
+                                alert(`🏁 Game Over! ${lastPlayer.name} finishes last.`);
+                                // Redirect immediately after showing the final message
+                                setTimeout(() => {
+                                    window.location.href = '/';
+                                }, 2000);
+                            }, 1000);
+                        }
+                    } else {
+                        // All players finished at the same time or game ended for other reason
+                        setTimeout(() => {
+                            alert('🏁 Game Over! All players have finished.');
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 2000);
+                        }, 1000);
+                    }
                 }
             }
         } else {
-            alert(`Error: ${result.error}`);
+            // Handle game finished or other errors
+            if (result.error && result.error.includes('Game is already finished')) {
+                alert('🏁 Game Over! All players have finished.');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            } else {
+                alert(`Error: ${result.error}`);
+            }
         }
     } catch (error) {
         console.error('Error submitting score:', error);
@@ -318,12 +392,30 @@ async function undoScore(): Promise<void> {
 
         if (result.success) {
             currentGameState = result.gameState;
+            // Update previous state when undoing
+            window.previousGameState = JSON.parse(JSON.stringify(currentGameState));
             updateUI();
         } else {
-            alert(`Error: ${result.error}`);
+            // Handle case where game is finished or other errors
+            if (result.error && result.error.includes('No active game')) {
+                alert('🏁 Game has ended. Redirecting to home...');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            } else {
+                alert(`Error: ${result.error}`);
+            }
         }
     } catch (error) {
         console.error('Error undoing score:', error);
         alert('Failed to undo score. Please try again.');
+    }
+}
+
+// Add type declaration for window properties
+declare global {
+    interface Window {
+        gameState: GameState;
+        previousGameState?: GameState;
     }
 }

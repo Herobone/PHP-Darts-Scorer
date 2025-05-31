@@ -11,12 +11,12 @@
 <div class="max-w-lg mx-auto p-6 bg-white rounded-lg shadow-md">
     <div class="mb-6">
         <div class="text-center">
-            <div id="players-list" class="flex space-x-4 mb-4 justify-between">
+            <div id="players-list" class="flex mb-4 justify-around gap-2">
                 {% for p in gameState.players %}
-                    <div class="player p-2 bg-gray-100 rounded" data-player-index="{{ loop.index0 }}">
+                    <div class="player flex-1 p-4 bg-gray-100 rounded text-center" data-player-index="{{ loop.index0 }}">
                         <div class="font-bold text-gray-800">{{ p.name }}</div>
-                        <div>Remaining: <span class="remaining" data-initial="{{ p.remaining }}">{{ p.remaining }}</span></div>
-                        <div class="darts flex"></div>
+                        <span class="remaining" data-initial="{{ p.remaining }}">{{ p.remaining }}</span>
+                        <div class="darts flex justify-center"></div>
                     </div>
                 {% endfor %}
             </div>

@@ -21,7 +21,7 @@ class ScoreController extends BaseController
         $db = Database::getConnection();
         $statementsToPrepare = [
             'get_player_total_score' => 'SELECT COALESCE(SUM(score),0) AS total FROM score_history WHERE game_player_id = $1',
-            'get_ordered_players_for_game' => 'SELECT id, player_name FROM game_players WHERE game_id = $1 ORDER BY id',
+            'get_ordered_players_for_game' => 'SELECT id, player_name, finish_position, finished_at FROM game_players WHERE game_id = $1 ORDER BY id',
             'get_active_game_with_info' => 'SELECT id, start_score, single_in, double_in, single_out, double_out FROM games WHERE owner_id = $1 AND is_active = TRUE',
             'insert_score_history' => 'INSERT INTO score_history (game_player_id, score, is_bust_shot, is_turn_ender) VALUES ($1, $2, $3, $4)',
             'set_game_inactive' => 'UPDATE games SET is_active = FALSE WHERE id = $1',
@@ -104,15 +104,14 @@ class ScoreController extends BaseController
                 throw new Exception('No active game', 400);
             }
 
-            // Check if game is already won
-            $gameWon = false;
+            // Check if game is already completely finished (only 1 or 0 players remain)
+            $playersNotFinished = 0;
             foreach ($gameState['players'] as $player) {
-                if ($player['remaining'] == 0) {
-                    $gameWon = true;
-                    break;
+                if ($player['remaining'] > 0) {
+                    $playersNotFinished++;
                 }
             }
-            if ($gameWon) {
+            if ($playersNotFinished <= 1) {
                 throw new Exception('Game is already finished', 400);
             }
 
@@ -144,10 +143,20 @@ class ScoreController extends BaseController
                     $isTurnEnder = true;
                     $score = 0;
                 } else {
-                    // Game won!
+                    // Player finished!
                     $isTurnEnder = true;
-                    // Set game as inactive
-                    pg_execute($db, 'set_game_inactive', [$gameState['game']['id']]);
+                    
+                    // Calculate finish position (count how many players have already finished)
+                    $finishedCountQuery = 'SELECT COUNT(*) as count FROM game_players 
+                                         WHERE game_id = (SELECT game_id FROM game_players WHERE id = $1) 
+                                         AND finish_position IS NOT NULL';
+                    $finishedCountResult = pg_query_params($db, $finishedCountQuery, [$currentPlayerData['id']]);
+                    $finishedCountData = pg_fetch_assoc($finishedCountResult);
+                    $finishPosition = (int)$finishedCountData['count'] + 1;
+                    
+                    // Update player's finish position
+                    $updateFinishQuery = 'UPDATE game_players SET finish_position = $1, finished_at = NOW() WHERE id = $2';
+                    pg_query_params($db, $updateFinishQuery, [$finishPosition, $currentPlayerData['id']]);
                 }
             } elseif (!$isBust && $newRemaining == 1 && $gameState['game']['double_out']) {
                 // Can't finish with 1 if double out required
@@ -162,8 +171,29 @@ class ScoreController extends BaseController
             // Store score in database
             pg_execute($db, 'insert_score_history', [$currentPlayerData['id'], $score, $isBust ? 'true' : 'false', $isTurnEnder ? 'true' : 'false']);
 
-            // Return updated game state
+            // Get updated game state BEFORE potentially setting game inactive
             $updatedGameState = $this->getGameState($db);
+            
+            // Check if game should be ended (only after getting the state with the finishing player)
+            if (!$isBust && $newRemaining == 0) {
+                // Check if only one player remains (game should end)
+                $remainingCountQuery = 'SELECT COUNT(*) as count FROM game_players 
+                                      WHERE game_id = (SELECT game_id FROM game_players WHERE id = $1) 
+                                      AND finish_position IS NULL';
+                $remainingCountResult = pg_query_params($db, $remainingCountQuery, [$currentPlayerData['id']]);
+                $remainingCountData = pg_fetch_assoc($remainingCountResult);
+                
+                if ((int)$remainingCountData['count'] <= 1) {
+                    // Set game as inactive when only 1 or 0 players remain
+                    pg_execute($db, 'set_game_inactive', [$gameState['game']['id']]);
+                    
+                    // Add a flag to indicate the game is now finished
+                    if ($updatedGameState) {
+                        $updatedGameState['gameFinished'] = true;
+                    }
+                }
+            }
+
             echo json_encode(['success' => true, 'gameState' => $updatedGameState]);
 
         } catch (Exception $e) {
@@ -248,16 +278,23 @@ class ScoreController extends BaseController
                 'id' => (int)$player['id'],
                 'name' => $player['player_name'],
                 'remaining' => (int)$game['start_score'] - $totalScore,
+                'finishPosition' => $player['finish_position'] ? (int)$player['finish_position'] : null,
+                'finishedAt' => $player['finished_at'],
                 'lastDarts' => [] // Will be populated after calculating current player
             ];
         }
         
         // Calculate current player and dart based on turn management
-        // Find player with incomplete turn (has darts but last dart is not turn ender)
+        // Find player with incomplete turn (has darts but last dart is not turn ender) and not finished
         $currentPlayer = 0;
         $currentDart = 1;
         
         foreach ($players as $index => $player) {
+            // Skip players who have already finished
+            if ($player['remaining'] <= 0) {
+                continue;
+            }
+            
             // Check if this player has an incomplete turn
             $incompleteQuery = 'SELECT COUNT(*) as count 
                               FROM score_history sh 
@@ -278,17 +315,30 @@ class ScoreController extends BaseController
             }
         }
         
-        // If no player has incomplete turn, find next player based on completed turns
+        // If no player has incomplete turn, find next active (unfinished) player based on completed turns
         if ($currentDart === 1) {
-            $totalCompletedTurns = 0;
-            foreach ($players as $player) {
-                $completedQuery = 'SELECT COUNT(*) as turns FROM score_history WHERE game_player_id = $1 AND is_turn_ender = TRUE';
-                $completedResult = pg_query_params($db, $completedQuery, [$player['id']]);
-                $completedData = pg_fetch_assoc($completedResult);
-                $totalCompletedTurns += (int)$completedData['turns'];
+            // Get list of unfinished players
+            $unfinishedPlayers = [];
+            foreach ($players as $index => $player) {
+                if ($player['remaining'] > 0) {
+                    $unfinishedPlayers[] = $index;
+                }
             }
             
-            $currentPlayer = $totalCompletedTurns % count($players);
+            if (!empty($unfinishedPlayers)) {
+                $totalCompletedTurns = 0;
+                foreach ($players as $player) {
+                    // Only count turns for unfinished players
+                    if ($player['remaining'] > 0) {
+                        $completedQuery = 'SELECT COUNT(*) as turns FROM score_history WHERE game_player_id = $1 AND is_turn_ender = TRUE';
+                        $completedResult = pg_query_params($db, $completedQuery, [$player['id']]);
+                        $completedData = pg_fetch_assoc($completedResult);
+                        $totalCompletedTurns += (int)$completedData['turns'];
+                    }
+                }
+                
+                $currentPlayer = $unfinishedPlayers[$totalCompletedTurns % count($unfinishedPlayers)];
+            }
         }
         
         // Now populate lastDarts for each player based on whether they are current player or not
