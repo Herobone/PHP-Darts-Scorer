@@ -244,20 +244,11 @@ class ScoreController extends BaseController
             $scoreData = pg_fetch_assoc($scoreResult);
             $totalScore = (int)$scoreData['total'];
             
-            // Get last 3 darts for this player
-            $lastDartsQuery = 'SELECT score FROM score_history WHERE game_player_id = $1 ORDER BY recorded_at DESC, id DESC LIMIT 3';
-            $lastDartsResult = pg_query_params($db, $lastDartsQuery, [$player['id']]);
-            $lastDarts = [];
-            while ($dart = pg_fetch_assoc($lastDartsResult)) {
-                $lastDarts[] = (int)$dart['score'];
-            }
-            $lastDarts = array_reverse($lastDarts); // Show in chronological order
-            
             $players[] = [
                 'id' => (int)$player['id'],
                 'name' => $player['player_name'],
                 'remaining' => (int)$game['start_score'] - $totalScore,
-                'lastDarts' => $lastDarts
+                'lastDarts' => [] // Will be populated after calculating current player
             ];
         }
         
@@ -299,6 +290,65 @@ class ScoreController extends BaseController
             
             $currentPlayer = $totalCompletedTurns % count($players);
         }
+        
+        // Now populate lastDarts for each player based on whether they are current player or not
+        foreach ($players as $index => &$player) {
+            if ($index === $currentPlayer) {
+                // For current player: show only darts from current incomplete turn
+                $currentTurnQuery = 'SELECT score FROM score_history sh 
+                                   WHERE sh.game_player_id = $1 
+                                   AND sh.id > COALESCE((
+                                       SELECT MAX(id) FROM score_history 
+                                       WHERE game_player_id = $1 AND is_turn_ender = TRUE
+                                   ), 0)
+                                   ORDER BY sh.recorded_at ASC, sh.id ASC';
+                
+                $currentTurnResult = pg_query_params($db, $currentTurnQuery, [$player['id']]);
+                $currentTurnDarts = [];
+                while ($dart = pg_fetch_assoc($currentTurnResult)) {
+                    $currentTurnDarts[] = (int)$dart['score'];
+                }
+                $player['lastDarts'] = $currentTurnDarts;
+            } else {
+                // For other players: show darts from their last completed turn (up to 3)
+                // Get the most recent turn-ending dart
+                $lastTurnEndQuery = 'SELECT id FROM score_history 
+                                   WHERE game_player_id = $1 AND is_turn_ender = TRUE 
+                                   ORDER BY recorded_at DESC, id DESC LIMIT 1';
+                $lastTurnEndResult = pg_query_params($db, $lastTurnEndQuery, [$player['id']]);
+                
+                if ($lastTurnEndRow = pg_fetch_assoc($lastTurnEndResult)) {
+                    $lastTurnEndId = $lastTurnEndRow['id'];
+                    
+                    // Get the previous turn-ending dart (if any)
+                    $prevTurnEndQuery = 'SELECT id FROM score_history 
+                                       WHERE game_player_id = $1 AND is_turn_ender = TRUE 
+                                       AND id < $2
+                                       ORDER BY recorded_at DESC, id DESC LIMIT 1';
+                    $prevTurnEndResult = pg_query_params($db, $prevTurnEndQuery, [$player['id'], $lastTurnEndId]);
+                    $prevTurnEndId = 0;
+                    if ($prevTurnEndRow = pg_fetch_assoc($prevTurnEndResult)) {
+                        $prevTurnEndId = $prevTurnEndRow['id'];
+                    }
+                    
+                    // Get darts from the last complete turn
+                    $lastTurnQuery = 'SELECT score FROM score_history 
+                                    WHERE game_player_id = $1 
+                                    AND id > $2 AND id <= $3
+                                    ORDER BY recorded_at ASC, id ASC';
+                    $lastTurnResult = pg_query_params($db, $lastTurnQuery, [$player['id'], $prevTurnEndId, $lastTurnEndId]);
+                    $lastTurnDarts = [];
+                    while ($dart = pg_fetch_assoc($lastTurnResult)) {
+                        $lastTurnDarts[] = (int)$dart['score'];
+                    }
+                    $player['lastDarts'] = $lastTurnDarts;
+                } else {
+                    // No completed turns yet
+                    $player['lastDarts'] = [];
+                }
+            }
+        }
+        unset($player); // Break reference
         
         return [
             'game' => [

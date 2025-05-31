@@ -41,65 +41,48 @@ export function ScoringPage(): void {
     }
 
     setupEventListeners();
+    // Initialize UI with default multiplier
+    selectedMultiplier = 1;
+    updateScoreDisplay();
+    updateButtonStates();
 }
 
 function setupEventListeners(): void {
-    // Number buttons
+    // Number buttons - auto-submit when clicked
     const numberButtons = document.querySelectorAll('[data-value]');
     numberButtons.forEach(button => {
         button.addEventListener('click', (e) => {
             const target = e.target as HTMLElement;
             const value = parseInt(target.getAttribute('data-value') || '0');
             selectedScore = value;
-            updateScoreDisplay();
+            
+            // Auto-submit the score immediately
+            if (validateScore(selectedScore, selectedMultiplier)) {
+                submitScore();
+            } else {
+                updateScoreDisplay(); // Show validation error
+            }
         });
     });
 
-    // Multiplier buttons
+    // Multiplier buttons - toggle on/off when clicked
     const multiplierButtons = document.querySelectorAll('[data-multiplier]');
     multiplierButtons.forEach(button => {
         button.addEventListener('click', (e) => {
             const target = e.target as HTMLElement;
             const multiplier = parseInt(target.getAttribute('data-multiplier') || '1');
-            selectedMultiplier = multiplier;
-            updateScoreDisplay();
-        });
-    });
-
-    // Single multiplier (default)
-    document.addEventListener('click', (e) => {
-        const target = e.target as HTMLElement;
-        if (target.hasAttribute('data-value') && !target.hasAttribute('data-multiplier')) {
-            selectedMultiplier = 1;
-            updateScoreDisplay();
-        }
-    });
-
-    // Submit score on number button click (after multiplier if selected)
-    numberButtons.forEach(button => {
-        button.addEventListener('dblclick', () => {
-            // Double click to submit immediately
-            if (selectedScore !== 0) {
-                submitScore();
+            
+            // Toggle multiplier - if already selected, deselect it
+            if (selectedMultiplier === multiplier) {
+                selectedMultiplier = 1; // Reset to single (unselected state)
+            } else {
+                selectedMultiplier = multiplier;
             }
+            
+            updateScoreDisplay();
+            updateButtonStates(); // Update button availability based on multiplier
         });
     });
-
-    // Add submit button for explicit submission
-    const submitBtn = document.createElement('button');
-    submitBtn.textContent = 'Submit Score';
-    submitBtn.className = 'py-2 px-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors col-span-1';
-    submitBtn.addEventListener('click', () => {
-        if (selectedScore !== 0) {
-            submitScore();
-        }
-    });
-    
-    const multiplierContainer = document.querySelector('.multiplier-buttons');
-    if (multiplierContainer) {
-        // Grid is already 4 columns in template
-        multiplierContainer.appendChild(submitBtn);
-    }
 
     // Undo button
     const undoBtn = document.getElementById('undo-btn');
@@ -109,53 +92,51 @@ function setupEventListeners(): void {
 }
 
 function updateScoreDisplay(): void {
-    // Highlight selected score button
-    const numberButtons = document.querySelectorAll('[data-value]');
-    numberButtons.forEach(button => {
-        const value = parseInt(button.getAttribute('data-value') || '0');
-        if (value === selectedScore) {
-            button.classList.add('!bg-yellow-500');
-        } else {
-            button.classList.remove('!bg-yellow-500');
-        }
-    });
-
     // Highlight selected multiplier button
     const multiplierButtons = document.querySelectorAll('[data-multiplier]');
     multiplierButtons.forEach(button => {
         const multiplier = parseInt(button.getAttribute('data-multiplier') || '1');
-        if (multiplier === selectedMultiplier) {
+        if (multiplier === selectedMultiplier && selectedMultiplier > 1) {
             button.classList.add('!bg-yellow-500');
         } else {
             button.classList.remove('!bg-yellow-500');
         }
     });
 
-    // Validate the current score combination
-    const isValidScore = validateScore(selectedScore, selectedMultiplier);
-    const submitButton = document.querySelector('button[class*="bg-green-500"]') as HTMLButtonElement;
-    if (submitButton) {
-        if (isValidScore && selectedScore > 0) {
-            submitButton.disabled = false;
-            submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
-        } else {
-            submitButton.disabled = true;
-            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
-        }
-    }
-
     // Show score preview
     const scorePreview = document.getElementById('score-preview') || createScorePreview();
-    if (selectedScore > 0 && isValidScore) {
-        const totalScore = selectedScore * selectedMultiplier;
-        scorePreview.textContent = `Score: ${totalScore}`;
-        scorePreview.className = 'text-lg font-bold text-green-600 text-center mt-2';
-    } else if (selectedScore > 0 && !isValidScore) {
-        scorePreview.textContent = `Invalid: ${selectedScore} × ${selectedMultiplier}`;
-        scorePreview.className = 'text-lg font-bold text-red-600 text-center mt-2';
+    if (selectedMultiplier > 1) {
+        scorePreview.textContent = `Selected: ${getMultiplierText(selectedMultiplier)} - Choose number`;
+        scorePreview.className = 'text-lg font-bold text-blue-600 text-center mt-2';
     } else {
-        scorePreview.textContent = 'Select a score';
-        scorePreview.className = 'text-lg font-bold text-gray-400 text-center mt-2';
+        scorePreview.textContent = 'Choose multiplier (or single), then number';
+        scorePreview.className = 'text-lg font-bold text-gray-600 text-center mt-2';
+    }
+}
+
+function updateButtonStates(): void {
+    // Update number button states based on selected multiplier
+    const numberButtons = document.querySelectorAll('[data-value]');
+    numberButtons.forEach(button => {
+        const value = parseInt(button.getAttribute('data-value') || '0');
+        const isValid = validateScore(value, selectedMultiplier);
+        
+        if (!isValid) {
+            button.classList.add('opacity-50', 'cursor-not-allowed');
+            (button as HTMLButtonElement).disabled = true;
+        } else {
+            button.classList.remove('opacity-50', 'cursor-not-allowed');
+            (button as HTMLButtonElement).disabled = false;
+        }
+    });
+}
+
+function getMultiplierText(multiplier: number): string {
+    switch (multiplier) {
+        case 1: return 'Single';
+        case 2: return 'Double';
+        case 3: return 'Triple';
+        default: return 'Single';
     }
 }
 
@@ -296,10 +277,11 @@ async function submitScore(): Promise<void> {
             currentGameState = result.gameState;
             updateUI();
             
-            // Reset selection
+            // Reset selection and multiplier
             selectedScore = 0;
             selectedMultiplier = 1;
             updateScoreDisplay();
+            updateButtonStates();
 
             // Check for game over
             if (currentGameState && currentGameState.players.some(player => player.remaining === 0)) {
