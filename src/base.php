@@ -42,6 +42,10 @@ $router->addRoute('GET', '/game/score', App\Controller\ScoreController::class, '
 $router->addRoute('POST', '/game/score', App\Controller\ScoreController::class, 'submit');
 $router->addRoute('POST', '/game/score/undo', App\Controller\ScoreController::class, 'undo');
 
+// History routes
+$router->addRoute('GET', '/history', App\Controller\HistoryController::class, 'index');
+$router->addRoute('POST', '/history/delete', App\Controller\HistoryController::class, 'delete');
+
 if (DEV) {
     $router->addRoute("GET", "/debug/migrate", DebugController::class, 'migrate');
     $router->addRoute('GET', '/debug/phpinfo', DebugController::class, 'phpInfo');
