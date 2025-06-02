@@ -45,16 +45,7 @@ export default defineConfig({
         host: 'localhost', // Oder '0.0.0.0' um von anderen Geräten im Netzwerk erreichbar zu sein
         port: 5173, // Standard Vite Port, kann geändert werden
         strictPort: true, // Fehler werfen, wenn der Port belegt ist
-        // Wichtig für die Integration mit deinem PHP Backend-Server:
-        // Wir sagen Vite, wo es die Assets während der Entwicklung bereitstellen soll.
-        // Dein PHP muss diese URLs dann verwenden.
         origin: 'http://localhost:5173', // Die URL des Vite Dev Servers
-
-        // Optional: Proxy-Anfragen an deinen PHP-Server, wenn du alles über den Vite-Port laufen lassen willst
-        // proxy: {
-        //   '/api': 'http://localhost:8000', // Leitet Anfragen an /api an deinen PHP-Server weiter
-        //   // Du kannst hier auch PHP-Dateien proxyen, aber das ist oft komplexer als nötig.
-        // }
     },
 
     resolve: {
