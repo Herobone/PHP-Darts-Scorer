@@ -75,6 +75,7 @@ class AuthController extends BaseController
             $result = pg_fetch_assoc($result);
             $_SESSION['user_id'] = $result["id"];
             $_SESSION['username'] = $username;
+            $_SESSION['email'] = $email;
             header('Location: /');
             exit;
         }
@@ -82,6 +83,7 @@ class AuthController extends BaseController
 
     /**
      * Handle login submission
+     * @throws Exception
      * @throws SyntaxError
      * @throws RuntimeError
      * @throws LoaderError
@@ -95,12 +97,14 @@ class AuthController extends BaseController
             return;
         }
         $db = Database::getConnection();
-        pg_prepare($db, "user_query", 'SELECT id, username, password FROM users WHERE email = $1');
+        pg_prepare($db, "user_query", 'SELECT id, username, password, email FROM users WHERE email = $1');
         $result = pg_execute($db, "user_query", [$email]);
         $user = pg_fetch_assoc($result);
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
+            $_SESSION['email'] = $user['email'];
+            
             header('Location: /');
             exit;
         }
