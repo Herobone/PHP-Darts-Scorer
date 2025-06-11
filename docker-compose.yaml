@@ -1,4 +1,13 @@
 services:
+  app:
+    image: ghcr.io/herobone/php-darts-scorer:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443/tcp"
+      - "443:443/udp"
+    depends_on:
+      - postgres
   postgres:
     image: postgres:latest
     restart: always
