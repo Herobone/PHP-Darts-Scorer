@@ -1,0 +1,169 @@
+{% extends "base.html.twig" %}
+
+{% block title %}About - Darts Scorer{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+        <div class="text-center mb-8">
+            <svg class="h-16 w-16 mx-auto mb-4" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <!-- Dartboard SVG -->
+                <circle cx="50" cy="50" r="49" fill="#000" stroke="#fff" stroke-width="2"/>
+                <circle cx="50" cy="50" r="45" fill="#fff" stroke="#000" stroke-width="1"/>
+                <circle cx="50" cy="50" r="38" fill="#000" stroke="#fff" stroke-width="1"/>
+                <circle cx="50" cy="50" r="31" fill="#fff" stroke="#000" stroke-width="1"/>
+                <circle cx="50" cy="50" r="15" fill="#000" stroke="#fff" stroke-width="1"/>
+                <circle cx="50" cy="50" r="8" fill="#dc2626" stroke="#fff" stroke-width="1"/>
+                <circle cx="50" cy="50" r="3" fill="#000"/>
+                <!-- Sector lines -->
+                <line x1="50" y1="1" x2="50" y2="99" stroke="#fff" stroke-width="1"/>
+                <line x1="1" y1="50" x2="99" y2="50" stroke="#fff" stroke-width="1"/>
+                <line x1="15" y1="15" x2="85" y2="85" stroke="#fff" stroke-width="1"/>
+                <line x1="85" y1="15" x2="15" y2="85" stroke="#fff" stroke-width="1"/>
+            </svg>
+            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">PHP Darts Scorer</h1>
+            <p class="text-xl text-gray-600 dark:text-gray-300">Version 0.1.2</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- App Information -->
+            <div class="space-y-6">
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Über die Anwendung</h2>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">
+                        Der PHP Darts Scorer ist eine moderne, webbasierte Anwendung zur Verwaltung und Auswertung 
+                        von Dart-Spielen. Die Anwendung ermöglicht es Benutzern, Spiele zu erstellen, Punkte zu 
+                        verwalten und ihre Spielhistorie einzusehen.
+                    </p>
+                    <p class="text-gray-700 dark:text-gray-300">
+                        Entwickelt mit modernen Webtechnologien für eine optimale Benutzererfahrung auf allen Geräten.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Hauptfunktionen</h3>
+                    <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Benutzerregistrierung und -authentifizierung
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            501-Dart-Spiele mit konfigurierbaren Regeln
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Mehrspielerfähigkeit (bis zu 8 Spieler)
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Spielhistorie und Statistiken
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Responsive Design mit Dark Mode
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Technical Information -->
+            <div class="space-y-6">
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Technische Details</h2>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Backend:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">PHP 8.4+</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Frontend:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">TypeScript, Tailwind CSS</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Datenbank:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">PostgreSQL</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Web Server:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">FrankenPHP/Caddy</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Template Engine:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">Twig</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Build Tools:</span>
+                            <span class="text-gray-900 dark:text-white font-medium">Vite, Bun</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Entwickler</h3>
+                    <p class="text-gray-700 dark:text-gray-300">
+                        <strong>Julius G.</strong><br>
+                        Entwickelt im Jahr 2025
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- License Information -->
+        <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Lizenz & Copyright</h2>
+            
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Mozilla Public License 2.0</h3>
+                <p class="text-gray-700 dark:text-gray-300 mb-4">
+                    Diese Anwendung steht unter der Mozilla Public License Version 2.0. Die MPL 2.0 ist eine 
+                    Copyleft-Lizenz, die es ermöglicht, den Code in kommerziellen und nicht-kommerziellen 
+                    Projekten zu verwenden.
+                </p>
+                
+                <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <p><strong>Erlaubnisse:</strong> Kommerzielle Nutzung, Modifikation, Verteilung, Private Nutzung</p>
+                    <p><strong>Bedingungen:</strong> Lizenz- und Copyright-Hinweise einschließen, Quellcode für Änderungen offenlegen</p>
+                    <p><strong>Einschränkungen:</strong> Keine Haftung, Keine Gewährleistung, Markenrechte nicht inbegriffen</p>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                    <p class="text-xs text-gray-500 dark:text-gray-500">
+                        Eine vollständige Kopie der Lizenz finden Sie in der Datei LICENSE im Projektverzeichnis 
+                        oder unter <a href="https://mozilla.org/MPL/2.0/" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300" target="_blank">https://mozilla.org/MPL/2.0/</a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="text-center text-gray-600 dark:text-gray-400">
+                <p>&copy; 2025 Julius G. Alle Rechte vorbehalten.</p>
+                <p class="mt-2 text-sm">
+                    Entwickelt mit ❤️ für die Dart-Community
+                </p>
+            </div>
+        </div>
+
+        <!-- GitHub Link -->
+        <div class="mt-6 text-center">
+            <a href="https://github.com/herobone/php-darts-scorer" 
+               target="_blank"
+               class="inline-flex items-center px-4 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z" clip-rule="evenodd"></path>
+                </svg>
+                Quellcode auf GitHub ansehen
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
