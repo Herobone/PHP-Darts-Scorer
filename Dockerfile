@@ -22,7 +22,7 @@ WORKDIR /app
 COPY --from=builder /app/build /app/build
 COPY --from=phpbuilder /app/vendor /app/vendor
 COPY templates /app/templates
-COPY Caddyfile.prod /etc/caddy/Caddyfile
+COPY prod.caddyfile /etc/frankenphp/Caddyfile
 COPY src /app/src
 
 COPY config.php /app/config.php

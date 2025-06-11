@@ -1,0 +1,24 @@
+{
+	skip_install_trust
+
+	{$CADDY_GLOBAL_OPTIONS}
+
+	frankenphp {
+	    worker /app/build/worker.php
+	    php_ini session.use_strict_mode	1
+	}
+}
+
+{$SERVER_NAME:localhost} {
+	log
+
+	encode zstd br gzip
+
+	root /app/build/
+
+	{$CADDY_SERVER_EXTRA_DIRECTIVES}
+
+	php_server {
+		worker /app/build/worker.php
+	}
+}
