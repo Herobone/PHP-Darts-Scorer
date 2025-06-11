@@ -1,6 +1,6 @@
 {
 	frankenphp {
-	    worker build/worker.php
+	    worker /app/build/worker.php
 	    php_ini session.use_strict_mode	1
 	}
 }
@@ -10,7 +10,7 @@ localhost {
 
 	encode zstd br gzip
 
-	root build/
+	root /app/build/
 
 	request_header X-Sendfile-Type x-accel-redirect
 	request_header X-Accel-Mapping ../private-files=/private-files

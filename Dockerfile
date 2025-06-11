@@ -30,6 +30,3 @@ COPY config.php /app/config.php
 EXPOSE 80
 EXPOSE 443/udp
 EXPOSE 443/tcp
-
-
-
